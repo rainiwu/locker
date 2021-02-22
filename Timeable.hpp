@@ -26,11 +26,16 @@ namespace locker {
   /** Timeable recieve to buffer */
   struct Receiver : public ITimeable {
     Receiver(std::vector<std::complex<float>>& buffer, size_t samples=0);
+    ~Receiver();
     virtual void operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
         const uhd::time_spec_t& sendTime);
     std::vector<std::complex<float>>& buffer;
     size_t samples;
     uhd::rx_metadata_t metadata;
+  protected:
+    void readToBuf();
+    uhd::rx_streamer::sptr rxStreamer;
+    uhd::time_spec_t myTime;
   };
 
   /** Timeable transmit from buffer */

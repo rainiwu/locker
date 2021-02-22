@@ -40,8 +40,8 @@ namespace locker {
     /** checks all TX/RX channels for lo and sensor lock */ 
     bool checkAllLock(const clockSources& aSource=clockSources::internal);
 
-    /** send a series of timed command at given time in future */
-    void sendTimed(const std::vector<ITimeable*>& command, double time=1.0);
+    /** send a series of timed commands at given time in future with given interval in-between*/
+    void sendTimed(const std::vector<ITimeable*>& command, double time=1.0, double interval=0.0);
 
   protected:
     /** maps clockSources enum to string */

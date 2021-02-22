@@ -31,10 +31,11 @@ namespace locker {
 
   LockedInstance::~LockedInstance() {}
 
-  void LockedInstance::sendTimed(const std::vector<ITimeable*>& commands, double time) {
-    const uhd::time_spec_t triggerTime = myUSRP->get_time_now() + uhd::time_spec_t(time);
+  void LockedInstance::sendTimed(const std::vector<ITimeable*>& commands, double time, double interval) {
+    uhd::time_spec_t triggerTime = myUSRP->get_time_now() + uhd::time_spec_t(time);
     for(auto command : commands) {
       (*command)(myUSRP, triggerTime); // timed commands don't block
+      triggerTime += uhd::time_spec_t(interval);
     }
   }
   
@@ -67,7 +68,7 @@ namespace locker {
       if(std::find(sensorNames.begin(), sensorNames.end(), "lo_locked") != sensorNames.end()) {
         uhd::sensor_value_t txloResult = myUSRP->get_tx_sensor("lo_locked", chan);
         std::cout << "TX Channel " << chan << " " << txloResult.to_pp_string() << std::endl;
-//        UHD_ASSERT_THROW(txloResult.to_bool());
+        UHD_ASSERT_THROW(txloResult.to_bool());
       }
     }
     for(size_t chan = 0; chan < myUSRP->get_rx_num_channels(); chan++) {
