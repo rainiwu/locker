@@ -38,8 +38,10 @@ namespace locker {
   void Receiver::readToBuf() {
     rxStreamer->recv(&buffer.front(), samples, metadata, 10.0);
     if(metadata.error_code != metadata.ERROR_CODE_NONE) { std::cout << metadata.strerror() << " error occurred" << std::endl; }
-    std::cout << "Difference between stream time and first packet: " << (metadata.time_spec - myTime).get_real_secs() * 1e6 << "us" << '\n';
+    std::cout << "Difference between queued time and first packet: " << (metadata.time_spec - myTime).get_real_secs() * 1e6 << "us" << '\n';
   }
+  
+  //---------------------------------------------------------------------
 
   Transmitter::Transmitter(const std::vector<std::complex<float>>& buffer, size_t samples) : ITimeable(TimeableType::TX), buffer(buffer), samples(samples) {}
 

@@ -24,28 +24,39 @@ namespace locker {
   };
 
   /** Timeable recieve to buffer */
-  struct Receiver : public ITimeable {
+  class Receiver : public ITimeable {
+  public:
     Receiver(std::vector<std::complex<float>>& buffer, size_t samples=0);
-    ~Receiver();
+    ~Receiver(); /** prevents default double free */
+
     virtual void operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
         const uhd::time_spec_t& sendTime);
+
     std::vector<std::complex<float>>& buffer;
     size_t samples;
-    uhd::rx_metadata_t metadata;
+    uhd::rx_metadata_t metadata; /** collects received metadata */
   protected:
-    void readToBuf();
-    uhd::rx_streamer::sptr rxStreamer;
-    uhd::time_spec_t myTime;
+    void readToBuf(); /** read received data, helps threading */
+    uhd::rx_streamer::sptr rxStreamer; /** required for threading */
+    uhd::time_spec_t myTime; /** saves queued time */
   };
 
   /** Timeable transmit from buffer */
-  struct Transmitter : public ITimeable {
+  class Transmitter : public ITimeable {
+  public:
     Transmitter(const std::vector<std::complex<float>>& buffer, size_t samples=0);
+    ~Transmitter();
+
     virtual void operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
         const uhd::time_spec_t& sendTime);
+
     const std::vector<std::complex<float>>& buffer;
     size_t samples;
     uhd::tx_metadata_t metadata;
+  protected:
+    void sendFromBuf();
+    uhd::tx_streamer::sptr txStreamer;
+    uhd::time_spec_t myTime;
   };
 
 }
