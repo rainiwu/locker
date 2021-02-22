@@ -10,6 +10,8 @@
 #include <chrono>
 #include <thread>
 
+#include "Timeable.hpp"
+
 namespace locker {
 
   enum class clockSources { internal=0, external=1, mimo=2 };
@@ -37,6 +39,9 @@ namespace locker {
 
     /** checks all TX/RX channels for lo and sensor lock */ 
     bool checkAllLock(const clockSources& aSource=clockSources::internal);
+
+    /** send a series of timed command at given time in future */
+    void sendTimed(const std::vector<ITimeable*>& command, double time=1.0);
 
   protected:
     /** maps clockSources enum to string */

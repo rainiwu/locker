@@ -24,11 +24,19 @@ namespace locker {
     myUSRP->set_clock_source(getSource(aSource));
     uhd::tune_request_t tuneReq(freq, lo_offset); // interim type
     this->tuneAll(tuneReq, rxgain, txgain, rxrate, txrate, rxant, txant);
+    myUSRP->set_time_next_pps(uhd::time_spec_t(0.0)); // set time
     std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1000 * setupTime)));
     checkAllLock(aSource);
   }
 
   LockedInstance::~LockedInstance() {}
+
+  void LockedInstance::sendTimed(const std::vector<ITimeable*>& commands, double time) {
+    const uhd::time_spec_t triggerTime = myUSRP->get_time_now() + uhd::time_spec_t(time);
+    for(auto command : commands) {
+      (*command)(myUSRP, triggerTime); // timed commands don't block
+    }
+  }
   
   void LockedInstance::tuneAll(const uhd::tune_request_t& aRequest,
       const double& rxgain,
