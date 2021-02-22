@@ -4,16 +4,18 @@
  */
 
 #include "LockedInstance.hpp"
+#include <iostream>
 
 namespace locker {
-  LockedInstance::LockedInstance(const uhd::device_addr_t& anAddr,
-      const clockSources& aSource,
+  LockedInstance::LockedInstance(
       const double& freq,
       const double& lo_offset,
       const double& rxgain,
       const double& txgain,
       const double& rxrate,
       const double& txrate,
+      const uhd::device_addr_t& anAddr,
+      const clockSources& aSource,
       const std::string& rxant,
       const std::string& txant,
       const double& setupTime
@@ -38,13 +40,13 @@ namespace locker {
       ) {
     for(size_t chan = 0; chan < myUSRP->get_tx_num_channels(); chan++) {
       myUSRP->set_tx_freq(aRequest, chan);
-      myUSRP->set_tx_rate(txgain, chan);
+      myUSRP->set_tx_gain(txgain, chan);
       myUSRP->set_tx_rate(txrate, chan);
       myUSRP->set_tx_antenna(txant, chan);
     }
     for(size_t chan = 0; chan < myUSRP->get_rx_num_channels(); chan++) {
       myUSRP->set_rx_freq(aRequest, chan);
-      myUSRP->set_rx_rate(rxgain, chan);
+      myUSRP->set_rx_gain(rxgain, chan);
       myUSRP->set_rx_rate(rxrate, chan);
       myUSRP->set_rx_antenna(rxant, chan);
     }
@@ -56,13 +58,15 @@ namespace locker {
       sensorNames = myUSRP->get_tx_sensor_names(chan);
       if(std::find(sensorNames.begin(), sensorNames.end(), "lo_locked") != sensorNames.end()) {
         uhd::sensor_value_t txloResult = myUSRP->get_tx_sensor("lo_locked", chan);
-        UHD_ASSERT_THROW(txloResult.to_bool());
+        std::cout << "TX Channel " << chan << " " << txloResult.to_pp_string() << std::endl;
+//        UHD_ASSERT_THROW(txloResult.to_bool());
       }
     }
     for(size_t chan = 0; chan < myUSRP->get_rx_num_channels(); chan++) {
       sensorNames = myUSRP->get_rx_sensor_names(chan);
       if(std::find(sensorNames.begin(), sensorNames.end(), "lo_locked") != sensorNames.end()) {
         uhd::sensor_value_t rxloResult = myUSRP->get_rx_sensor("lo_locked", chan);
+        std::cout << "RX Channel " << chan << " " << rxloResult.to_pp_string() << std::endl;
         UHD_ASSERT_THROW(rxloResult.to_bool());
       }
     }

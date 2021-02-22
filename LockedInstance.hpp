@@ -21,18 +21,22 @@ namespace locker {
     /**
      * Creates a USRP instance with given parameters
      */
-    LockedInstance(const uhd::device_addr_t& anAddr=uhd::device_addr_t(""),
-        const clockSources& aSource=clockSources::internal,
+    LockedInstance(
         const double& freq=0.0,
         const double& lo_offset=0.0,
         const double& rxgain=0.0,
         const double& txgain=1.0,
         const double& rxrate=1e6,
         const double& txrate=1e6,
+        const uhd::device_addr_t& anAddr=uhd::device_addr_t(""),
+        const clockSources& aSource=clockSources::internal,
         const std::string& rxant="TX/RX",
         const std::string& txant="TX/RX",
         const double& setupTime = 1.0);
     ~LockedInstance();
+
+    /** checks all TX/RX channels for lo and sensor lock */ 
+    bool checkAllLock(const clockSources& aSource=clockSources::internal);
 
   protected:
     /** maps clockSources enum to string */
@@ -45,8 +49,6 @@ namespace locker {
         const double& txrate,
         const std::string& rxant="TX/RX",
         const std::string& txant="TX/RX");
-    /** checks all TX/RX channels for lo and sensor lock */ 
-    bool checkAllLock(const clockSources& aSource);
 
     uhd::usrp::multi_usrp::sptr myUSRP; /** USRP instance */
   };
