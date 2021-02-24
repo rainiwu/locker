@@ -10,7 +10,9 @@
 
 namespace locker {
 
-  enum class TimeableType { RX=0, TX=1, none=99 };
+  enum class TimeableType { RX=0, TX=1, settings=2, none=99 };
+
+  enum class SettingType { rxgain=0 };
 
   /** Timeable commands interface 
    * A Timeable command has an overloaded functor which sends some commands
@@ -21,6 +23,20 @@ namespace locker {
     virtual void operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
         const uhd::time_spec_t& sendTime)=0;
     TimeableType type;
+  };
+
+  /** Timeable change USRP settings */
+  class Setter : public ITimeable {
+  public:
+    Setter(SettingType setting, double value);
+    ~Setter();
+  
+    virtual void operator()(uhd::usrp::multi_usrp::sptr& aUSRP, 
+        const uhd::time_spec_t& sendTime);
+
+  protected:
+    SettingType mySetting;
+    double value;
   };
 
   /** Timeable recieve to buffer */

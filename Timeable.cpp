@@ -10,6 +10,32 @@ namespace locker {
 
   ITimeable::ITimeable(TimeableType type) : type(type) {}
 
+  //---------------------------------------------------------------------
+
+  Setter::Setter(SettingType setting, double value) : ITimeable(TimeableType::settings), mySetting(setting), value(value) {} 
+  
+  Setter::~Setter(){}
+
+  void Setter::operator()(uhd::usrp::multi_usrp::sptr& aUSRP, 
+      const uhd::time_spec_t& sendTime) {
+    aUSRP->set_command_time(sendTime);
+    
+    // timed commands in general are not blocking, so thread not needed
+    switch(mySetting) {
+      case SettingType::rxgain:
+        for(size_t chan=0; chan < aUSRP->get_rx_num_channels(); chan++) {
+          aUSRP->set_rx_gain(value, chan);
+        }
+        break;
+      default:
+        break;
+    }
+    aUSRP->clear_command_time();
+    std::cout << "Set command queued. \n";
+  }
+
+  //---------------------------------------------------------------------
+
   Receiver::Receiver(std::vector<std::complex<float>>& buffer, size_t samples) : ITimeable(TimeableType::RX), buffer(buffer), samples(samples) {}
 
   void Receiver::operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
