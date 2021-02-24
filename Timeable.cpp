@@ -7,13 +7,14 @@
 #include <thread>
 
 namespace locker {
+
   ITimeable::ITimeable(TimeableType type) : type(type) {}
 
   Receiver::Receiver(std::vector<std::complex<float>>& buffer, size_t samples) : ITimeable(TimeableType::RX), buffer(buffer), samples(samples) {}
 
   void Receiver::operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
       const uhd::time_spec_t& sendTime) {
-    uhd::stream_args_t args("fc32"); // set receive to 32bit complex float
+    uhd::stream_args_t args("fc32", "sc16"); // set receive to 32bit complex float
     rxStreamer = aUSRP->get_rx_stream(args); 
     
     // set stream type based on number of samples requested
@@ -45,7 +46,35 @@ namespace locker {
 
   Transmitter::Transmitter(const std::vector<std::complex<float>>& buffer, size_t samples) : ITimeable(TimeableType::TX), buffer(buffer), samples(samples) {}
 
+  Transmitter::~Transmitter(){}
+
   void Transmitter::operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
       const uhd::time_spec_t& sendTime) {
+    uhd::stream_args_t args("fc32", "sc16"); 
+    txStreamer = aUSRP->get_tx_stream(args);
+
+    metadata.start_of_burst = false;
+    metadata.end_of_burst = true;
+    metadata.has_time_spec = true;
+    metadata.time_spec = sendTime;
+
+    std::cout << "TX command queued." << '\n';
+    myTime = sendTime;
+
+    // send is blocking, so spin it out
+    std::thread sendOut(&Transmitter::sendFromBuf, this);
+    sendOut.detach();
+  }
+
+  void Transmitter::sendFromBuf() {
+    size_t samplesSent = 0; // track total number of samples sent 
+    while(samplesSent < samples) {
+      size_t samplesToSend = std::min(samples - samplesSent, buffer.size());
+      samplesSent += txStreamer->send(&buffer.front(), samplesToSend, metadata, 10.0);
+      metadata.has_time_spec = false; // send subsequent packets immediately
+    }
+    metadata.end_of_burst = true; // send EOB
+    txStreamer->send("", 0, metadata);
+    std::cout << "TX data transmitted." << '\n';
   }
 }
