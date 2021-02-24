@@ -24,7 +24,7 @@ int main() {
   commands.push_back(transmit.get());
 
   // queue command
-  anInstance.sendTimed(commands, 1.0, 0.0);
+  anInstance.sendTimed(commands, 2.0, 2.0);
   
   // wait for execution
   std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1000*5.0)));
@@ -33,7 +33,7 @@ int main() {
   if(buffer.empty()) {
     std::cout << "Buffer is empty!" << '\n';
   } else {
-    std::cout << "Received " << buffer.size() << " packets" << '\n';
-    std::cout << "Sample entry: " << buffer[300] << std::endl;
+    std::cout << "Received " << buffer.size() << " samples" << '\n';
+    std::cout << "RX sample entry: " << buffer[300] << std::endl;
   }
 }
