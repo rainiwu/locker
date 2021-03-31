@@ -1,9 +1,9 @@
 CXX=g++
-CXXFLAGS=-Wall -pedantic
+CXXFLAGS=-g -Wall -pedantic -fPIC
 BIN=locked
-LDLIBS=-luhd -lpthread
+LDLIBS=-L/home/raini/doc/test/uhd-x400/host/build/lib -l:libuhd.so.4.0.0 -lpthread
 
-SRC=$(wildcard *.cpp)
+SRC=Timeable.cpp LockedInstance.cpp main.cpp
 OBJ=$(SRC:%.cpp=%.o)
 
 all: $(OBJ)
