@@ -2,15 +2,25 @@
 #include <iostream>
 #include <algorithm>
 #include <fstream>
+#include <boost/math/special_functions/round.hpp>
+#include "wavetable.hpp"
 
 int main() {
-  locker::LockedInstance anInstance(2.4e9, 0.0, 0.0, 1.0, 2e6);
+  locker::LockedInstance anInstance(2.4e9, 0.0, 0.0, 1.0, 2e6, 2e6);
   std::cout << "constructed successfully" << std::endl;
 
   // initialize buffer
   size_t samples = 2e6;
   std::vector<std::complex<float>> buffer(samples);
-  // std::vector<std::complex<float>> txbuff(samples);
+  std::vector<std::complex<float>> txbuff(samples);
+
+  // fill txbuff with sinusoid
+  const wave_table_class sinusoid("SINE", 0.3);
+  const size_t step = boost::math::iround(10 / 2e6 * wave_table_len);
+  size_t index = 0;
+  for (size_t n = 0; n < txbuff.size(); n++) {                                                                                                                
+    txbuff[n] = sinusoid(index += step);     
+  }
   
   // set up output file
   std::ofstream outfile;
@@ -24,16 +34,16 @@ int main() {
 
   // initialize Timeable commands
   auto receiver = std::make_shared<locker::Receiver>(buffer, samples);
-  // auto transmit = std::make_shared<locker::Transmitter>(txbuff, samples);
-  auto setter = std::make_shared<locker::Setter>(locker::SettingType::rxgain, 30);
+  auto transmit = std::make_shared<locker::Transmitter>(txbuff, samples);
+  // auto setter = std::make_shared<locker::Setter>(locker::SettingType::rxgain, 30);
 
   std::vector<locker::ITimeable*> commands; 
   commands.push_back(receiver.get());
-  commands.push_back(setter.get());
-  // commands.push_back(transmit.get());
+  // commands.push_back(setter.get());
+  commands.push_back(transmit.get());
 
   // queue command
-  anInstance.sendTimed(commands, 0.1, 0.5);
+  anInstance.sendTimed(commands, 0.1, 0.0);
   
   // wait for execution
   std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1000*5.0)));
