@@ -7,6 +7,12 @@
 #include <iostream>
 
 namespace locker {
+  
+  /** sleep for a certain time in seconds **/
+  inline void wait(const double& time) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1000 * time)));
+  }
+
   LockedInstance::LockedInstance(
       const double& freq,
       const double& lo_offset,
@@ -23,9 +29,10 @@ namespace locker {
     myUSRP = uhd::usrp::multi_usrp::make(anAddr); // init USRP ptr
     myUSRP->set_clock_source(getSource(aSource));
     uhd::tune_request_t tuneReq(freq, lo_offset); // interim type
-    this->tuneAll(tuneReq, rxgain, txgain, rxrate, txrate, rxant, txant);
     myUSRP->set_time_next_pps(uhd::time_spec_t(0.0)); // set time
-    std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1000 * setupTime)));
+    wait(1);
+    this->tuneAll(tuneReq, rxgain, txgain, rxrate, txrate, rxant, txant);
+    wait(setupTime);
     checkAllLock(aSource);
   }
 
@@ -47,6 +54,7 @@ namespace locker {
       const std::string& rxant,
       const std::string& txant
       ) {
+    myUSRP->set_command_time(myUSRP->get_time_now() + uhd::time_spec_t(1.0));
     for(size_t chan = 0; chan < myUSRP->get_tx_num_channels(); chan++) {
       myUSRP->set_tx_freq(aRequest, chan);
       myUSRP->set_tx_gain(txgain, chan);
@@ -59,6 +67,7 @@ namespace locker {
       myUSRP->set_rx_rate(rxrate, chan);
       myUSRP->set_rx_antenna(rxant, chan);
     }
+    myUSRP->clear_command_time();
   }
 
   bool LockedInstance::checkAllLock(const clockSources& aSource) {

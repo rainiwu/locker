@@ -1,7 +1,8 @@
 CXX=g++
 CXXFLAGS=-Wall -pedantic
 BIN=locked
-LDLIBS=-luhd -lpthread
+UHD4LIB=/home/raini/doc/test/uhd-x400/host/build/lib
+LDLIBS=-L$(UHD4LIB) -l:libuhd.so.4.0.0 -lpthread -lboost_system
 
 SRC=$(wildcard *.cpp)
 OBJ=$(SRC:%.cpp=%.o)
