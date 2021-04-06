@@ -53,7 +53,8 @@ namespace locker {
     uhd::rx_metadata_t metadata; /** collects received metadata */
   protected:
     void readToBuf(); /** read received data, helps threading */
-    uhd::rx_streamer::sptr rxStreamer; /** required for threading */
+    inline static uhd::rx_streamer::sptr rxStreamer=nullptr; /** required for threading */
+    inline static bool reading=false;
     uhd::time_spec_t myTime; /** saves queued time */
   };
 
