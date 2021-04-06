@@ -6,6 +6,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 //
 
+#ifndef wavetable_hpp
+#define wavetable_hpp
+
 #include <cmath>
 #include <complex>
 #include <stdexcept>
@@ -81,3 +84,5 @@ private:
     std::vector<std::complex<float>> _wave_table;
     double _power_dbfs;
 };
+
+#endif

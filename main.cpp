@@ -1,62 +1,26 @@
-#include "LockedInstance.hpp"
-#include <iostream>
-#include <algorithm>
-#include <fstream>
-#include <boost/math/special_functions/round.hpp>
-#include "wavetable.hpp"
+#include <string>
+#include "examples/loopback.cpp"
+#include "examples/timedset.cpp"
+#include "examples/tworx.cpp"
 
-int main() {
-  locker::LockedInstance anInstance(2.4e9, 0.0, 0.0, 1.0, 2e6, 2e6);
-  std::cout << "constructed successfully" << std::endl;
-
-  // initialize buffer
-  size_t samples = 2e6;
-  std::vector<std::complex<float>> buffer(samples);
-  std::vector<std::complex<float>> txbuff(samples);
-
-  // fill txbuff with sinusoid
-  const wave_table_class sinusoid("SINE", 0.3);
-  const size_t step = boost::math::iround(10 / 2e6 * wave_table_len);
-  size_t index = 0;
-  for (size_t n = 0; n < txbuff.size(); n++) {                                                                                                                
-    txbuff[n] = sinusoid(index += step);     
-  }
-  
-  // set up output file
-  std::ofstream outfile;
-  outfile.open("timed_commands_test.iq", std::ofstream::binary);
-
-  /**
-  // fill txbuff with random data
-  std::srand(unsigned(std::time(nullptr)));
-  std::generate(txbuff.begin(), txbuff.end(), std::rand);
-  */
-
-  // initialize Timeable commands
-  auto receiver = std::make_shared<locker::Receiver>(buffer, samples);
-  auto transmit = std::make_shared<locker::Transmitter>(txbuff, samples);
-  // auto setter = std::make_shared<locker::Setter>(locker::SettingType::rxgain, 30);
-
-  std::vector<locker::ITimeable*> commands; 
-  commands.push_back(receiver.get());
-  // commands.push_back(setter.get());
-  commands.push_back(transmit.get());
-
-  // queue command
-  anInstance.sendTimed(commands, 0.1, 0.0);
-  
-  // wait for execution
-  std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1000*5.0)));
-
-  // check RX result
-  if(buffer.empty()) {
-    std::cout << "Buffer is empty!" << '\n';
-  } else {
-    std::cout << "Received " << buffer.size() << " samples" << '\n';
-    std::cout << "RX sample entry at 0.1M: " << buffer[0.1e6] << '\n';
-    std::cout << "RX sample entry at 1.9M: " << buffer[1.9e6] << std::endl;
-  }
-
-  std::cout << "writing to file" << std::endl;
-  outfile.write((const char*)&buffer.front(), samples * sizeof(std::complex<float>));
+int main(int argc, const char* argv[]) {
+  if(argc > 1) {
+    std::string command(argv[1]);
+    if("loopback" == command) {
+      std::cout << "Running loopback test:" << '\n';
+      examples::loopback();
+    }
+    else if("timedset" == command) {
+      std::cout << "Running timedset test:" << '\n';
+      examples::timedset();
+    }
+    else if("tworx" == command) {
+      std::cout << "Running tworx test:" << '\n';
+      examples::tworx();
+    }
+    else {
+      std::cout << "invalid argument " << command << '\n';
+    }
+  } else { std::cout << "valid arguments include: loopback, timedset, tworx" << std::endl; }
+  return 0;
 }
