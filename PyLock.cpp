@@ -12,10 +12,10 @@ public:
     delete myInstance;
   }
 
-  double freq = 0.0;
-  double rxgain = 0.0;
+  double freq = 2.4e9;
+  double rxgain = 20.0;
   double rxrate = 1e6;
-  double txgain = 1.0;
+  double txgain = 10.0;
   double txrate = 1e6;
   std::string rxfile = "recv.iq";
 
@@ -27,13 +27,20 @@ public:
   void clearQueue() { commandQueue.clear(); }
 
   void queueRx(int samples) {
+    rxbuffer.clear();
     rxbuffer.resize(samples);
     commandQueue.push_back(new locker::Receiver(rxbuffer, samples));
     std::cout << "RX of " << samples << " samples queued." << '\n';
   }
 
   void queueTx(std::string filename, size_t samples=2e6) {
-    std::cout << "Not implemented." << '\n'; 
+    txbuffer.clear();
+    txbuffer.resize(samples);
+    std::ifstream infile;
+    infile.open(filename, std::ofstream::binary);
+    infile.read((char*)&txbuffer.front(), samples * sizeof(std::complex<float>));
+    commandQueue.push_back(new locker::Transmitter(txbuffer, samples));
+    std::cout << "TX of " << samples << " samples queued." << '\n'; 
   }
 
   void queueSet(std::string setting="rxgain", int value=30) {
