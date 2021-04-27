@@ -1,10 +1,10 @@
 CXX=g++
-CXXFLAGS=-Wall -pedantic -std=c++17
+CXXFLAGS=-Wall -pedantic -std=c++17 -fPIC
 BIN=locked
 UHD4LIB=/home/raini/doc/test/uhd-x400/host/build/lib
 LDLIBS=-L$(UHD4LIB) -l:libuhd.so.4.0.0 -lpthread -lboost_system
 
-SRC=$(wildcard *.cpp)
+SRC=Timeable.cpp LockedInstance.cpp main.cpp
 OBJ=$(SRC:%.cpp=%.o)
 
 all: $(OBJ)
