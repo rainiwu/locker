@@ -18,6 +18,7 @@ public:
   double txgain = 10.0;
   double txrate = 1e6;
   std::string rxfile = "recv.iq";
+  std::string txfile = "sin.iq";
 
   void makeInstance() {
     myInstance = new locker::LockedInstance(freq, 0.0, rxgain, txgain, rxrate, txrate);
@@ -33,11 +34,11 @@ public:
     std::cout << "RX of " << samples << " samples queued." << '\n';
   }
 
-  void queueTx(std::string filename, size_t samples=2e6) {
+  void queueTx(int samples) {
     txbuffer.clear();
     txbuffer.resize(samples);
     std::ifstream infile;
-    infile.open(filename, std::ofstream::binary);
+    infile.open(txfile, std::ofstream::binary);
     infile.read((char*)&txbuffer.front(), samples * sizeof(std::complex<float>));
     commandQueue.push_back(new locker::Transmitter(txbuffer, samples));
     std::cout << "TX of " << samples << " samples queued." << '\n'; 
@@ -60,6 +61,7 @@ public:
       outfile.open(rxfile, std::ofstream::binary);
       outfile.write((const char*)&rxbuffer.front(), rxbuffer.size()*sizeof(std::complex<float>));
       outfile.close();
+      rxbuffer.clear();
     }
   }
 
@@ -78,6 +80,7 @@ BOOST_PYTHON_MODULE(lockpy) {
     .def("make_instance", &PyLock::makeInstance)
     .def("clear_queue", &PyLock::clearQueue)
     .def("queue_rx", &PyLock::queueRx)
+    .def("queue_tx", &PyLock::queueTx)
     .def("queue_set", &PyLock::queueSet)
     .def("execute", &PyLock::execute)
     .def_readwrite("freq", &PyLock::freq)
