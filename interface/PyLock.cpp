@@ -1,4 +1,4 @@
-#include "LockedInstance.hpp"
+#include "../LockedInstance.hpp"
 #include <fstream>
 
 #include <boost/python.hpp>
