@@ -12,7 +12,7 @@ namespace locker {
 
   enum class TimeableType { RX=0, TX=1, settings=2, none=99 };
 
-  enum class SettingType { rxgain=0 };
+  enum class SettingType { rxgain=0, rxfreq, rxrate, txgain, txfreq, txrate };
 
   /** Timeable commands interface 
    * A Timeable command has an overloaded functor which sends some commands

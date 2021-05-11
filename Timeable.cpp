@@ -27,6 +27,31 @@ namespace locker {
           aUSRP->set_rx_gain(value, chan);
         }
         break;
+      case SettingType::txgain:
+        for(size_t chan=0; chan < aUSRP->get_tx_num_channels(); chan++) {
+          aUSRP->set_tx_gain(value, chan);
+        }
+        break;
+      case SettingType::rxfreq:
+        for(size_t chan=0; chan < aUSRP->get_rx_num_channels(); chan++) {
+          aUSRP->set_rx_freq(uhd::tune_request_t(value, 0), chan);
+        }
+        break;
+      case SettingType::txfreq:
+        for(size_t chan=0; chan < aUSRP->get_tx_num_channels(); chan++) {
+          aUSRP->set_tx_freq(uhd::tune_request_t(value, 0), chan);
+        }
+        break;
+      case SettingType::rxrate:
+        for(size_t chan=0; chan < aUSRP->get_rx_num_channels(); chan++) {
+          aUSRP->set_rx_rate(value, chan);
+        }
+        break;
+      case SettingType::txrate:
+        for(size_t chan=0; chan < aUSRP->get_tx_num_channels(); chan++) {
+          aUSRP->set_tx_rate(value, chan);
+        }
+        break;
       default:
         break;
     }

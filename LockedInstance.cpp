@@ -45,6 +45,16 @@ namespace locker {
       triggerTime += uhd::time_spec_t(interval);
     }
   }
+
+  void LockedInstance::sendTimed(const std::vector<ITimeable*>& commands, const std::vector<double>& triggerTimes) {
+    uhd::time_spec_t timeNow = myUSRP->get_time_now();
+    size_t index = 0;
+    for(auto command : commands) {
+      (*command)(myUSRP, timeNow + uhd::time_spec_t(triggerTimes[index])); // timed commands don't block
+      index++;
+    }
+  }
+
   
   void LockedInstance::tuneAll(const uhd::tune_request_t& aRequest,
       const double& rxgain,

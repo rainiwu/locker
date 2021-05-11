@@ -43,6 +43,9 @@ namespace locker {
     /** send a series of timed commands at given time in future with given interval in-between*/
     void sendTimed(const std::vector<ITimeable*>& command, double time=1.0, double interval=0.0);
 
+    /** send a series of timed commands with a list input time **/
+    void sendTimed(const std::vector<ITimeable*>& command, const std::vector<double>& triggerTimes);
+
   protected:
     /** maps clockSources enum to string */
     inline std::string getSource(const clockSources& aSource); 
