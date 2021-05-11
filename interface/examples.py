@@ -35,8 +35,8 @@ def loopback(outname="pyloopback.iq", freq=2.4e9, rxgain=20.0, txgain=10.0):
     anInstance.make_instance()
 
     # queue commands
-    anInstance.queue_rx(2e6)
-    anInstance.queue_tx(2e6)
+    anInstance.queue_rx(2000000)
+    anInstance.queue_tx(2000000)
 
     # execute commands
     anInstance.execute(0.1, 0.0)
