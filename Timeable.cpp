@@ -61,12 +61,16 @@ namespace locker {
 
   //---------------------------------------------------------------------
 
-  Receiver::Receiver(std::vector<std::complex<float>>& buffer, size_t samples) : ITimeable(TimeableType::RX), buffer(buffer), samples(samples) {}
+  Receiver::Receiver(std::vector<std::complex<float>*>& buffer,
+      size_t samples, std::vector<size_t> channels) : 
+    ITimeable(TimeableType::RX), buffer(buffer), samples(samples),
+    channels(channels) {}
 
   void Receiver::operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
       const uhd::time_spec_t& sendTime) {
     if(nullptr == rxStreamer) {
       uhd::stream_args_t args("fc32", "sc16"); // set receive to 32bit complex float
+      args.channels = channels;
       rxStreamer = aUSRP->get_rx_stream(args); 
     }
     
@@ -91,8 +95,8 @@ namespace locker {
 
   void Receiver::readToBuf() {
     if(nullptr == rxStreamer) { throw "rxStreamer not initialized"; }
-    if(true == reading) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1000)));
+    while(true == reading) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1)));
     }
     reading = true;
     rxStreamer->recv(&buffer.front(), samples, metadata, 10.0);
