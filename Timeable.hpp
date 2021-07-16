@@ -70,17 +70,19 @@ namespace locker {
   /** Timeable transmit from buffer */
   class Transmitter : public ITimeable {
   public:
-    Transmitter(const std::vector<std::complex<float>>& buffer, size_t samples=0);
+    Transmitter(const std::vector<std::complex<float>>& buffer, 
+        size_t samples=0, size_t channel=0);
     ~Transmitter();
 
     virtual void operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
         const uhd::time_spec_t& sendTime);
 
     const std::vector<std::complex<float>>& buffer;
-    size_t samples;
     uhd::tx_metadata_t metadata;
   protected:
     void sendFromBuf();
+    size_t samples;
+    size_t channel;
     uhd::tx_streamer::sptr txStreamer;
     uhd::time_spec_t myTime;
   };

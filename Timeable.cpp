@@ -76,7 +76,7 @@ namespace locker {
 
   void Receiver::operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
       const uhd::time_spec_t& sendTime) {
-    active = true;
+    active = true; // set ITimeable active flag
     if(nullptr == rxStreamer) {
       uhd::stream_args_t args("fc32", "sc16"); // set receive to 32bit complex float
       args.channels = channels;
@@ -117,15 +117,16 @@ namespace locker {
   
   //---------------------------------------------------------------------
 
-  Transmitter::Transmitter(const std::vector<std::complex<float>>& buffer, size_t samples) : ITimeable(TimeableType::TX), buffer(buffer), samples(samples) {}
+  Transmitter::Transmitter(const std::vector<std::complex<float>>& buffer, size_t samples, size_t channel) :
+    ITimeable(TimeableType::TX), buffer(buffer), samples(samples), channel(channel) {}
 
   Transmitter::~Transmitter(){}
 
   void Transmitter::operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
       const uhd::time_spec_t& sendTime) {
-    active = true;
+    active = true; // set ITimeable active flag
     uhd::stream_args_t args("fc32", "sc16"); 
-    args.channels = {0};
+    args.channels = {channel};
     txStreamer = aUSRP->get_tx_stream(args);
 
     metadata.start_of_burst = false;
