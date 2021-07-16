@@ -42,20 +42,26 @@ namespace locker {
   /** Timeable recieve to buffer */
   class Receiver : public ITimeable {
   public:
-    Receiver(std::vector<std::complex<float>*>& buffer, size_t samples=0, 
-        std::vector<size_t> channels={0});
+    Receiver(size_t samples=0, std::vector<size_t> channels={0});
     ~Receiver(); /** prevents default double free */
 
     virtual void operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
         const uhd::time_spec_t& sendTime);
 
-    std::vector<std::complex<float>*>& buffer;
-    size_t samples;
+    /** holds rx'd data */
+    std::vector<std::vector<std::complex<float>>> buffer;
+
     uhd::rx_metadata_t metadata; /** collects received metadata */
   protected:
     void readToBuf(); /** read received data, helps threading */
+    void genBuffer(); /** create buffers used in rx */
+
+    /** ptrs passed to uhd recv */
+    std::vector<std::complex<float>*> bufferPtrs;
+
     inline static uhd::rx_streamer::sptr rxStreamer=nullptr; /** required for threading */
-    inline static bool reading=false;
+    inline static bool reading=false; /** recv active flag */
+    size_t samples;
     std::vector<size_t> channels;
     uhd::time_spec_t myTime; /** saves queued time */
   };

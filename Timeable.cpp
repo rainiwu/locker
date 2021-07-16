@@ -61,10 +61,18 @@ namespace locker {
 
   //---------------------------------------------------------------------
 
-  Receiver::Receiver(std::vector<std::complex<float>*>& buffer,
-      size_t samples, std::vector<size_t> channels) : 
-    ITimeable(TimeableType::RX), buffer(buffer), samples(samples),
-    channels(channels) {}
+  Receiver::Receiver(size_t samples, std::vector<size_t> channels) : 
+      ITimeable(TimeableType::RX), samples(samples), channels(channels) {
+    genBuffer();
+  }
+
+  void Receiver::genBuffer() {
+    buffer = std::vector<std::vector<std::complex<float>>>(
+        channels.size(), std::vector<std::complex<float>>(samples));
+    for(size_t i = 0; i < buffer.size(); i++) {
+      bufferPtrs.push_back(&buffer[i].front());
+    }
+  }
 
   void Receiver::operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
       const uhd::time_spec_t& sendTime) {
@@ -99,7 +107,7 @@ namespace locker {
       std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1)));
     }
     reading = true;
-    rxStreamer->recv(&buffer.front(), samples, metadata, 10.0);
+    rxStreamer->recv(bufferPtrs, samples, metadata, 10.0);
     if(metadata.error_code != metadata.ERROR_CODE_NONE) { std::cout << metadata.strerror() << " error occurred" << std::endl; }
     std::cout << "Difference between queued time and first packet: " << (metadata.time_spec - myTime).get_real_secs() * 1e6 << "us" << '\n';
     reading = false;
@@ -114,6 +122,7 @@ namespace locker {
   void Transmitter::operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
       const uhd::time_spec_t& sendTime) {
     uhd::stream_args_t args("fc32", "sc16"); 
+    args.channels = {0};
     txStreamer = aUSRP->get_tx_stream(args);
 
     metadata.start_of_burst = false;

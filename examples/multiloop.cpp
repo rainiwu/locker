@@ -23,15 +23,6 @@ namespace examples {
     // initialize buffer
     size_t samples = 2e6;
 
-    std::vector<std::vector<std::complex<float>>> buffs(
-        channels.size(), std::vector<std::complex<float>>(samples)
-    );
-
-    std::vector<std::complex<float>*> buffer;
-    for (size_t i = 0; i < buffs.size(); i++) { 
-      buffer.push_back(&buffs[i].front());
-    }
-
     std::vector<std::complex<float>> txbuff(samples);
 
     // fill txbuff with sinusoid
@@ -44,13 +35,13 @@ namespace examples {
     
     // set up output files
     std::ofstream out1, out2, out3, out4;
-    out1.open("mlp1.iq", std::ofstream::binary);
-    out2.open("mlp2.iq", std::ofstream::binary);
-    out3.open("mlp3.iq", std::ofstream::binary);
-    out4.open("mlp4.iq", std::ofstream::binary);
+    out1.open("nl1.iq", std::ofstream::binary);
+    out2.open("nl2.iq", std::ofstream::binary);
+    out3.open("nl3.iq", std::ofstream::binary);
+    out4.open("nl4.iq", std::ofstream::binary);
 
     // initialize Timeable commands
-    auto receiver = std::make_shared<locker::Receiver>(buffer, samples, channels);
+    auto receiver = std::make_shared<locker::Receiver>(samples, channels);
     auto transmit = std::make_shared<locker::Transmitter>(txbuff, samples);
 
     std::vector<locker::ITimeable*> commands; 
@@ -64,9 +55,9 @@ namespace examples {
     std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1000*5.0)));
 
     std::cout << "writing to file" << std::endl;
-    out1.write((const char*)&buffs[0].front(), samples * sizeof(std::complex<float>));
-    out2.write((const char*)&buffs[1].front(), samples * sizeof(std::complex<float>));
-    out3.write((const char*)&buffs[2].front(), samples * sizeof(std::complex<float>));
-    out4.write((const char*)&buffs[3].front(), samples * sizeof(std::complex<float>));
+    out1.write((const char*)&receiver->buffer[0].front(), samples * sizeof(std::complex<float>));
+    out2.write((const char*)&receiver->buffer[1].front(), samples * sizeof(std::complex<float>));
+    out3.write((const char*)&receiver->buffer[2].front(), samples * sizeof(std::complex<float>));
+    out4.write((const char*)&receiver->buffer[3].front(), samples * sizeof(std::complex<float>));
   }
 }

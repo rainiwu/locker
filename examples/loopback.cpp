@@ -20,7 +20,6 @@ namespace examples {
 
     // initialize buffer
     size_t samples = 2e6;
-    std::vector<std::complex<float>> buffer(samples);
     std::vector<std::complex<float>> txbuff(samples);
 
     // fill txbuff with sinusoid
@@ -36,7 +35,7 @@ namespace examples {
     outfile.open(outname, std::ofstream::binary);
 
     // initialize Timeable commands
-    auto receiver = std::make_shared<locker::Receiver>(buffer, samples);
+    auto receiver = std::make_shared<locker::Receiver>(samples);
     auto transmit = std::make_shared<locker::Transmitter>(txbuff, samples);
 
     std::vector<locker::ITimeable*> commands; 
@@ -48,17 +47,10 @@ namespace examples {
     
     // wait for execution
     std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1000*5.0)));
-
-    // check RX result
-    if(buffer.empty()) {
-      std::cout << "Buffer is empty!" << '\n';
-    } else {
-      std::cout << "Received " << buffer.size() << " samples" << '\n';
-      std::cout << "RX sample entry at 0.1M: " << buffer[0.1e6] << '\n';
-      std::cout << "RX sample entry at 1.9M: " << buffer[1.9e6] << std::endl;
-    }
+    
+    auto buffer = receiver->buffer;
 
     std::cout << "writing to file" << std::endl;
-    outfile.write((const char*)&buffer.front(), samples * sizeof(std::complex<float>));
+    outfile.write((const char*)&buffer[0].front(), samples * sizeof(std::complex<float>));
   }
 }
