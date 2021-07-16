@@ -76,6 +76,7 @@ namespace locker {
 
   void Receiver::operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
       const uhd::time_spec_t& sendTime) {
+    active = true;
     if(nullptr == rxStreamer) {
       uhd::stream_args_t args("fc32", "sc16"); // set receive to 32bit complex float
       args.channels = channels;
@@ -111,6 +112,7 @@ namespace locker {
     if(metadata.error_code != metadata.ERROR_CODE_NONE) { std::cout << metadata.strerror() << " error occurred" << std::endl; }
     std::cout << "Difference between queued time and first packet: " << (metadata.time_spec - myTime).get_real_secs() * 1e6 << "us" << '\n';
     reading = false;
+    active = false;
   }
   
   //---------------------------------------------------------------------
@@ -121,6 +123,7 @@ namespace locker {
 
   void Transmitter::operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
       const uhd::time_spec_t& sendTime) {
+    active = true;
     uhd::stream_args_t args("fc32", "sc16"); 
     args.channels = {0};
     txStreamer = aUSRP->get_tx_stream(args);
@@ -148,5 +151,6 @@ namespace locker {
     metadata.end_of_burst = true; // send EOB
     txStreamer->send("", 0, metadata);
     std::cout << "TX data transmitted." << '\n';
+    active = false;
   }
 }

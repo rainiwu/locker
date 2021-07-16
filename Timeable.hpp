@@ -23,6 +23,7 @@ namespace locker {
     virtual void operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
         const uhd::time_spec_t& sendTime)=0;
     TimeableType type;
+    bool active = false;
   };
 
   /** Timeable change USRP settings */

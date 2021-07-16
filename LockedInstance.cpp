@@ -13,6 +13,20 @@ namespace locker {
     std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1000 * time)));
   }
 
+  /** block while commands are active **/
+  inline void block(const std::vector<ITimeable*>& commands) {
+    bool block;
+    do {
+      block = false;
+      for(auto command : commands) {
+        if(command->active) { 
+          wait(0.001);
+          block = true; 
+        }
+      }
+    } while(block);
+  }
+
   LockedInstance::LockedInstance(
       const double& freq,
       const double& lo_offset,
@@ -44,6 +58,7 @@ namespace locker {
       (*command)(myUSRP, triggerTime); // timed commands don't block
       triggerTime += uhd::time_spec_t(interval);
     }
+    block(commands);
   }
 
   void LockedInstance::sendTimed(const std::vector<ITimeable*>& commands, const std::vector<double>& triggerTimes) {
@@ -53,6 +68,7 @@ namespace locker {
       (*command)(myUSRP, timeNow + uhd::time_spec_t(triggerTimes[index])); // timed commands don't block
       index++;
     }
+    block(commands);
   }
 
   

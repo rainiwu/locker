@@ -45,9 +45,6 @@ namespace examples {
     // queue commands
     anInstance.sendTimed(commands, 0.1, 0.0);
     
-    // wait for execution
-    std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1000*5.0)));
-    
     auto buffer = receiver->buffer;
 
     std::cout << "writing to file" << std::endl;
