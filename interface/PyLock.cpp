@@ -18,22 +18,43 @@ public:
   double rxrate = 1e6;
   double txgain = 10.0;
   double txrate = 1e6;
-  std::string addr = "";
-  std::string rxfile = "recv.iq";
+  std::string addr0 = "";
+  std::string addr1 = "";
+  std::string addr2 = "";
+  std::string addr3 = "";
+  std::string rxfile = "recv";
   std::string txfile = "sin.iq";
 
   void makeInstance() {
-    myInstance = new locker::LockedInstance(freq, lo_offset, rxgain, txgain, rxrate, txrate, uhd::device_addr_t(addr));
+    uhd::device_addr_t uhdAddr;
+    if("" == addr0) { 
+      std::cout << "no addr specified, going with default" << '\n'; 
+      uhdAddr = uhd::device_addr_t(addr0);
+    }
+    else {
+      if("" != addr0) { uhdAddr["addr0"] = addr0; } 
+      if("" != addr1) { uhdAddr["addr1"] = addr1; } 
+      if("" != addr2) { uhdAddr["addr2"] = addr2; } 
+      if("" != addr3) { uhdAddr["addr3"] = addr3; } 
+    }
+    myInstance = new locker::LockedInstance(freq, lo_offset, rxgain, txgain, rxrate, txrate, uhdAddr);
     std::cout << "Instance constructed successfully." << '\n';
   }
 
   void clearQueue() { commandQueue.clear(); }
 
   void queueRx(int samples) {
-    rxbuffer.clear();
-    rxbuffer.resize(samples);
-    commandQueue.push_back(new locker::Receiver(rxbuffer, samples));
+    commandQueue.push_back(new locker::Receiver(samples));
+    rxChannels = 1;
     std::cout << "RX of " << samples << " samples queued." << '\n';
+  }
+
+  void queueMultiRx(int samples, boost::python::list pyChannels) {
+    auto channels = std::vector<size_t>(boost::python::stl_input_iterator<size_t>(pyChannels), 
+        boost::python::stl_input_iterator<size_t>());
+    commandQueue.push_back(new locker::Receiver(samples, channels));
+    rxChannels = channels.size();
+    std::cout << "RX of " << samples << " samples across " << channels.size() << " channels queued." << '\n';
   }
 
   void queueTx(int samples) {
@@ -43,7 +64,7 @@ public:
     infile.open(txfile, std::ofstream::binary);
     infile.read((char*)&txbuffer.front(), samples * sizeof(std::complex<float>));
     commandQueue.push_back(new locker::Transmitter(txbuffer, samples));
-    std::cout << "TX of " << samples << " samples queued." << '\n'; 
+    std::cout << "TX of " << samples << " samples from " << txfile << " queued." << '\n'; 
   }
 
   void queueSet(std::string setting="rxgain", int value=30) {
@@ -56,7 +77,7 @@ public:
     else if("rxfreq" == setting) { theType = locker::SettingType::rxfreq; }
     else if("txfreq" == setting) { theType = locker::SettingType::txfreq; }
     else { 
-      std::cout << "unkown setting '" << setting << "', no command queued" << std::endl;
+      std::cout << "unknown setting '" << setting << "', no command queued" << std::endl;
       return;
     }
     setter = new locker::Setter(theType, value);
@@ -66,35 +87,38 @@ public:
 
   void execute(float time=0.1, float interval=0.0) {
     myInstance->sendTimed(commandQueue, time, interval);
-    std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1000*(5.0 + time + interval*commandQueue.size()))));
-    if(!rxbuffer.empty()) {
-      std::ofstream outfile;
-      outfile.open(rxfile, std::ofstream::binary);
-      outfile.write((const char*)&rxbuffer.front(), rxbuffer.size()*sizeof(std::complex<float>));
-      outfile.close();
-      rxbuffer.clear();
-    }
+    if(rxChannels) { writeRxResult(); }
   }
 
   void execute_list(boost::python::list triggerTimes) {
     auto times = std::vector<double>(boost::python::stl_input_iterator<float>(triggerTimes), 
         boost::python::stl_input_iterator<float>());
     myInstance->sendTimed(commandQueue, times);
-    std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1000*(5.0 + times.size()))));
-    if(!rxbuffer.empty()) {
-      std::ofstream outfile;
-      outfile.open(rxfile, std::ofstream::binary);
-      outfile.write((const char*)&rxbuffer.front(), rxbuffer.size()*sizeof(std::complex<float>));
-      outfile.close();
-      rxbuffer.clear();
-    }
+    if(rxChannels) { writeRxResult(); }
   }
 
 protected:
-  std::vector<std::complex<float>> rxbuffer;
   std::vector<std::complex<float>> txbuffer;
   std::vector<locker::ITimeable*> commandQueue;
   locker::LockedInstance* myInstance;
+  size_t rxChannels = 0;
+
+  void writeRxResult() {
+    for( locker::ITimeable* command : commandQueue ) {
+      if(command->type == locker::TimeableType::RX) {
+        auto rx = dynamic_cast<locker::Receiver*>(command);
+        std::vector<std::ofstream> outputs;
+        for(size_t i=0; i<rx->channels.size(); i++) {
+          outputs.push_back(
+              std::ofstream(rxfile + std::to_string(i) + ".iq", 
+                std::ofstream::binary)
+          );
+          outputs.back().write((const char*)&rx->buffer[i].front(),
+              rx->samples * sizeof(std::complex<float>));
+        }
+      }
+    }
+  }
 };
 
 
@@ -105,6 +129,7 @@ BOOST_PYTHON_MODULE(lockpy) {
     .def("make_instance", &PyLock::makeInstance)
     .def("clear_queue", &PyLock::clearQueue)
     .def("queue_rx", &PyLock::queueRx)
+    .def("queue_multi_rx", &PyLock::queueMultiRx)
     .def("queue_tx", &PyLock::queueTx)
     .def("queue_set", &PyLock::queueSet)
     .def("execute", &PyLock::execute)
@@ -114,5 +139,9 @@ BOOST_PYTHON_MODULE(lockpy) {
     .def_readwrite("rxrate", &PyLock::rxrate)
     .def_readwrite("txgain", &PyLock::txgain)
     .def_readwrite("txrate", &PyLock::txrate)
+    .def_readwrite("addr0", &PyLock::addr0)
+    .def_readwrite("addr1", &PyLock::addr1)
+    .def_readwrite("addr2", &PyLock::addr2)
+    .def_readwrite("addr3", &PyLock::addr3)
     .def_readwrite("rxfile", &PyLock::rxfile);
 }

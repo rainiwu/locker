@@ -52,6 +52,9 @@ namespace locker {
     /** holds rx'd data */
     std::vector<std::vector<std::complex<float>>> buffer;
 
+    const size_t samples;
+    const std::vector<size_t> channels;
+
     uhd::rx_metadata_t metadata; /** collects received metadata */
   protected:
     void readToBuf(); /** read received data, helps threading */
@@ -62,8 +65,6 @@ namespace locker {
 
     inline static uhd::rx_streamer::sptr rxStreamer=nullptr; /** required for threading */
     inline static bool reading=false; /** recv active flag */
-    size_t samples;
-    std::vector<size_t> channels;
     uhd::time_spec_t myTime; /** saves queued time */
   };
 
