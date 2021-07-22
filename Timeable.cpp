@@ -81,7 +81,7 @@ namespace locker {
       uhd::stream_args_t args("fc32", "sc16"); // set receive to 32bit complex float
       args.channels = channels;
       rxStreamer = aUSRP->get_rx_stream(args); 
-    }
+    } else { std::cout << "note: using same rxStreamer as first Receiver" << '\n'; }
     
     // set stream type based on number of samples requested
     uhd::stream_cmd_t streamCmd((samples==0) 
