@@ -63,8 +63,8 @@ protected:
   /** ptrs passed to uhd recv */
   std::vector<std::complex<float> *> bufferPtrs;
 
-  inline static uhd::rx_streamer::sptr rxStreamer =
-      nullptr;                        /** required for threading */
+  /** required for threading */
+  inline static uhd::rx_streamer::sptr rxStreamer = nullptr;
   inline static bool reading = false; /** recv active flag */
   uhd::time_spec_t myTime;            /** saves queued time */
 };

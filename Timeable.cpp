@@ -79,8 +79,8 @@ void Receiver::operator()(uhd::usrp::multi_usrp::sptr &aUSRP,
                           const uhd::time_spec_t &sendTime) {
   active = true; // set ITimeable active flag
   if (nullptr == rxStreamer) {
-    uhd::stream_args_t args("fc32",
-                            "sc16"); // set receive to 32bit complex float
+    // set receive to 32bit complex float
+    uhd::stream_args_t args("fc32", "sc16");
     args.channels = channels;
     rxStreamer = aUSRP->get_rx_stream(args);
   } else {

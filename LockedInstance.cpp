@@ -63,10 +63,8 @@ void LockedInstance::sendTimed(const std::vector<ITimeable *> &commands,
   uhd::time_spec_t timeNow = myUSRP->get_time_now();
   size_t index = 0;
   for (auto command : commands) {
-    (*command)(myUSRP,
-               timeNow +
-                   uhd::time_spec_t(
-                       triggerTimes[index])); // timed commands don't block
+    // timed commands don't block
+    (*command)(myUSRP, timeNow + uhd::time_spec_t(triggerTimes[index]));
     index++;
   }
   block(commands);
