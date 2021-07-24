@@ -6,88 +6,90 @@
 #ifndef Timeable_hpp
 #define Timeable_hpp
 
-#include<uhd/usrp/multi_usrp.hpp>
+#include <uhd/usrp/multi_usrp.hpp>
 
 namespace locker {
 
-  enum class TimeableType { RX=0, TX=1, settings=2, none=99 };
+enum class TimeableType { RX = 0, TX = 1, settings = 2, none = 99 };
 
-  enum class SettingType { rxgain=0, rxfreq, rxrate, txgain, txfreq, txrate };
+enum class SettingType { rxgain = 0, rxfreq, rxrate, txgain, txfreq, txrate };
 
-  /** Timeable commands interface 
-   * A Timeable command has an overloaded functor which sends some commands
-   * to a given USRP which execute at a given time.
-   */
-  struct ITimeable {
-    ITimeable(TimeableType type=TimeableType::none);
-    virtual void operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
-        const uhd::time_spec_t& sendTime)=0;
-    TimeableType type;
-    bool active = false;
-  };
+/** Timeable commands interface
+ * A Timeable command has an overloaded functor which sends some commands
+ * to a given USRP which execute at a given time.
+ */
+struct ITimeable {
+  ITimeable(TimeableType type = TimeableType::none);
+  virtual void operator()(uhd::usrp::multi_usrp::sptr &aUSRP,
+                          const uhd::time_spec_t &sendTime) = 0;
+  TimeableType type;
+  bool active = false;
+};
 
-  /** Timeable change USRP settings */
-  class Setter : public ITimeable {
-  public:
-    Setter(SettingType setting, double value);
-    ~Setter();
-  
-    virtual void operator()(uhd::usrp::multi_usrp::sptr& aUSRP, 
-        const uhd::time_spec_t& sendTime);
+/** Timeable change USRP settings */
+class Setter : public ITimeable {
+public:
+  Setter(SettingType setting, double value);
+  ~Setter();
 
-  protected:
-    SettingType mySetting;
-    double value;
-  };
+  virtual void operator()(uhd::usrp::multi_usrp::sptr &aUSRP,
+                          const uhd::time_spec_t &sendTime);
 
-  /** Timeable recieve to buffer */
-  class Receiver : public ITimeable {
-  public:
-    Receiver(size_t samples=0, std::vector<size_t> channels={0});
-    ~Receiver(); /** prevents default double free */
+protected:
+  SettingType mySetting;
+  double value;
+};
 
-    virtual void operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
-        const uhd::time_spec_t& sendTime);
+/** Timeable recieve to buffer */
+class Receiver : public ITimeable {
+public:
+  Receiver(size_t samples = 0, std::vector<size_t> channels = {0});
+  ~Receiver(); /** prevents default double free */
 
-    /** holds rx'd data */
-    std::vector<std::vector<std::complex<float>>> buffer;
+  virtual void operator()(uhd::usrp::multi_usrp::sptr &aUSRP,
+                          const uhd::time_spec_t &sendTime);
 
-    const size_t samples;
-    const std::vector<size_t> channels;
+  /** holds rx'd data */
+  std::vector<std::vector<std::complex<float>>> buffer;
 
-    uhd::rx_metadata_t metadata; /** collects received metadata */
-  protected:
-    void readToBuf(); /** read received data, helps threading */
-    void genBuffer(); /** create buffers used in rx */
+  const size_t samples;
+  const std::vector<size_t> channels;
 
-    /** ptrs passed to uhd recv */
-    std::vector<std::complex<float>*> bufferPtrs;
+  uhd::rx_metadata_t metadata; /** collects received metadata */
+protected:
+  void readToBuf(); /** read received data, helps threading */
+  void genBuffer(); /** create buffers used in rx */
 
-    inline static uhd::rx_streamer::sptr rxStreamer=nullptr; /** required for threading */
-    inline static bool reading=false; /** recv active flag */
-    uhd::time_spec_t myTime; /** saves queued time */
-  };
+  /** ptrs passed to uhd recv */
+  std::vector<std::complex<float> *> bufferPtrs;
 
-  /** Timeable transmit from buffer */
-  class Transmitter : public ITimeable {
-  public:
-    Transmitter(const std::vector<std::complex<float>>& buffer, 
-        size_t samples=0, size_t channel=0);
-    ~Transmitter();
+  inline static uhd::rx_streamer::sptr rxStreamer =
+      nullptr;                        /** required for threading */
+  inline static bool reading = false; /** recv active flag */
+  uhd::time_spec_t myTime;            /** saves queued time */
+};
 
-    virtual void operator()(uhd::usrp::multi_usrp::sptr& aUSRP,
-        const uhd::time_spec_t& sendTime);
+/** Timeable transmit from buffer */
+class Transmitter : public ITimeable {
+public:
+  Transmitter(const std::vector<std::complex<float>> &buffer,
+              size_t samples = 0, size_t channel = 0);
+  ~Transmitter();
 
-    const std::vector<std::complex<float>>& buffer;
-    uhd::tx_metadata_t metadata;
-  protected:
-    void sendFromBuf();
-    size_t samples;
-    size_t channel;
-    uhd::tx_streamer::sptr txStreamer;
-    uhd::time_spec_t myTime;
-  };
+  virtual void operator()(uhd::usrp::multi_usrp::sptr &aUSRP,
+                          const uhd::time_spec_t &sendTime);
 
-}
+  const std::vector<std::complex<float>> &buffer;
+  uhd::tx_metadata_t metadata;
+
+protected:
+  void sendFromBuf();
+  size_t samples;
+  size_t channel;
+  uhd::tx_streamer::sptr txStreamer;
+  uhd::time_spec_t myTime;
+};
+
+} // namespace locker
 
 #endif

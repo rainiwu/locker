@@ -4,39 +4,42 @@
  */
 
 #include "../LockedInstance.hpp"
-#include <iostream>
 #include <algorithm>
 #include <fstream>
+#include <iostream>
 
 namespace examples {
-  /**
-   * Sets RX gain to 30db at 0.5s or 1e6 samples into receive. 
-   * Should result in visible amplitude change at that exact time. 
-   */
-  void timedset(const std::string& outname="timedset.iq", const double& freq = 2.4e9, const double& rxgain=0.0) {
-    locker::LockedInstance anInstance(freq, 0.0, rxgain, 1.0, 2e6, 2e6);
-    std::cout << "constructed successfully" << std::endl;
+/**
+ * Sets RX gain to 30db at 0.5s or 1e6 samples into receive.
+ * Should result in visible amplitude change at that exact time.
+ */
+void timedset(const std::string &outname = "timedset.iq",
+              const double &freq = 2.4e9, const double &rxgain = 0.0) {
+  locker::LockedInstance anInstance(freq, 0.0, rxgain, 1.0, 2e6, 2e6);
+  std::cout << "constructed successfully" << std::endl;
 
-    // initialize buffer
-    size_t samples = 2e6;
+  // initialize buffer
+  size_t samples = 2e6;
 
-    // set up output file
-    std::ofstream outfile;
-    outfile.open(outname, std::ofstream::binary);
+  // set up output file
+  std::ofstream outfile;
+  outfile.open(outname, std::ofstream::binary);
 
-    // initialize Timeable commands
-    auto receiver = std::make_shared<locker::Receiver>(samples);
-    auto setter = std::make_shared<locker::Setter>(locker::SettingType::rxgain, 30);
+  // initialize Timeable commands
+  auto receiver = std::make_shared<locker::Receiver>(samples);
+  auto setter =
+      std::make_shared<locker::Setter>(locker::SettingType::rxgain, 30);
 
-    std::vector<locker::ITimeable*> commands; 
-    commands.push_back(receiver.get());
-    commands.push_back(setter.get());
+  std::vector<locker::ITimeable *> commands;
+  commands.push_back(receiver.get());
+  commands.push_back(setter.get());
 
-    // queue command
-    anInstance.sendTimed(commands, 0.1, 0.5);
-    
-    std::cout << "writing to file" << std::endl;
+  // queue command
+  anInstance.sendTimed(commands, 0.1, 0.5);
 
-    outfile.write((const char*)&receiver->buffer[0].front(), samples * sizeof(std::complex<float>));
-  }
+  std::cout << "writing to file" << std::endl;
+
+  outfile.write((const char *)&receiver->buffer[0].front(),
+                samples * sizeof(std::complex<float>));
 }
+} // namespace examples

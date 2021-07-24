@@ -1,18 +1,17 @@
-#include <string>
 #include "examples/loopback.cpp"
 #include "examples/timedset.cpp"
+#include <string>
 //#include "examples/tworx.cpp"
 #include "examples/multiloop.cpp"
 //#include "examples/multi2rx.cpp"
 
-int main(int argc, const char* argv[]) {
-  if(argc > 1) {
+int main(int argc, const char *argv[]) {
+  if (argc > 1) {
     std::string command(argv[1]);
-    if("loopback" == command) {
+    if ("loopback" == command) {
       std::cout << "Running loopback test:" << '\n';
       examples::loopback();
-    }
-    else if("timedset" == command) {
+    } else if ("timedset" == command) {
       std::cout << "Running timedset test:" << '\n';
       examples::timedset();
     }
@@ -22,7 +21,7 @@ int main(int argc, const char* argv[]) {
       examples::tworx();
     }
     **/
-    else if("multiloop" == command or "mlp" == command) {
+    else if ("multiloop" == command or "mlp" == command) {
       std::cout << "Running multiloop test:" << '\n';
       // initialize device addr
       uhd::device_addr_t addr;
@@ -47,6 +46,9 @@ int main(int argc, const char* argv[]) {
     else {
       std::cout << "invalid argument " << command << '\n';
     }
-  } else { std::cout << "valid arguments include: loopback, multiloop, timedset, tworx" << std::endl; }
+  } else {
+    std::cout << "valid arguments include: loopback, multiloop, timedset, tworx"
+              << std::endl;
+  }
   return 0;
 }

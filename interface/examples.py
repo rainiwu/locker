@@ -1,5 +1,6 @@
 import lockpy
 
+
 def loopback(outname="pyloopback.iq", freq=2.4e9, rxgain=20.0, txgain=10.0):
     '''
     Simultaneous TX/RX. Should output a continuous complex sinusoid.
