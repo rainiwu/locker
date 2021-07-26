@@ -11,11 +11,10 @@ Lightweight C++ program designed to operate USRPs in predictable ways. Built on 
 ### Build  Instructions
 1. Install all dependencies
 2. Modify UHD 4.0 directory in makefile
-3. Run 'make' command
-#### Building Python Interface
-1. Do above
-2. Navigate to interface
-3. Run linklib.sh
+3. Modify Python version in makefile
+4. Run `make` command
+
+Build with `make cpp` or `make python` if you wish to compile only each respective part.
 
 ### File Structure 
 examples - directory containing several example files
