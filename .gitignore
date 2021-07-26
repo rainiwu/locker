@@ -2,3 +2,5 @@
 *.o
 *.iq
 scp.sh
+locked
+lockpy.so
