@@ -1,8 +1,8 @@
-#include "examples/loopback.cpp"
-#include "examples/multi2rx.cpp"
-#include "examples/multiloop.cpp"
-#include "examples/timedset.cpp"
-#include "examples/tworx.cpp"
+#include "loopback.cpp"
+#include "multi2rx.cpp"
+#include "multiloop.cpp"
+#include "timedset.cpp"
+#include "tworx.cpp"
 #include <string>
 
 int main(int argc, const char *argv[]) {

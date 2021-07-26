@@ -3,7 +3,7 @@ CXXFLAGS=-Wall -pedantic -std=c++17 -fPIC
 PYLIB=/usr/include/python3.8
 UHD4LIB=/home/raini/doc/test/uhd-x400/host/build/lib
 
-CSRC=Timeable.cpp LockedInstance.cpp main.cpp
+CSRC=Timeable.cpp LockedInstance.cpp examples/main.cpp
 COBJ=$(CSRC:%.cpp=%.o)
 CBIN=locked
 CLDLIBS=-L$(UHD4LIB) -l:libuhd.so.4.0.0 -lpthread -lboost_system
@@ -32,5 +32,6 @@ interface/%.o: interface/%.cpp
 clean:
 	rm -f *.o
 	rm -f interface/*.o
+	rm -f examples/*.o
 	rm $(CBIN)
 	rm $(PYBIN)
