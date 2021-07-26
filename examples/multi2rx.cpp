@@ -27,22 +27,6 @@ void multi2rx(const uhd::device_addr_t &addr,
   size_t rxSamples = 2e6;  // receieve 20ms
   size_t txSamples = 10e6; // transmit 100ms
 
-  std::vector<std::vector<std::complex<float>>> rx1buffs(
-      channels.size(), std::vector<std::complex<float>>(rxSamples));
-
-  std::vector<std::complex<float> *> rx1buffer;
-  for (size_t i = 0; i < rx1buffs.size(); i++) {
-    rx1buffer.push_back(&rx1buffs[i].front());
-  }
-
-  std::vector<std::vector<std::complex<float>>> rx2buffs(
-      channels.size(), std::vector<std::complex<float>>(rxSamples));
-
-  std::vector<std::complex<float> *> rx2buffer;
-  for (size_t i = 0; i < rx2buffs.size(); i++) {
-    rx2buffer.push_back(&rx2buffs[i].front());
-  }
-
   std::vector<std::complex<float>> txbuff(txSamples);
 
   // fill txbuff with sinusoid
@@ -62,8 +46,8 @@ void multi2rx(const uhd::device_addr_t &addr,
 
   // initialize Timeable commands
   auto transmit = std::make_shared<locker::Transmitter>(txbuff, txSamples);
-  auto rx1 = std::make_shared<locker::Receiver>(rx1buffer, rxSamples, channels);
-  auto rx2 = std::make_shared<locker::Receiver>(rx2buffer, rxSamples, channels);
+  auto rx1 = std::make_shared<locker::Receiver>(rxSamples, channels);
+  auto rx2 = std::make_shared<locker::Receiver>(rxSamples, channels);
 
   std::vector<locker::ITimeable *> commands;
   commands.push_back(transmit.get());
@@ -73,26 +57,23 @@ void multi2rx(const uhd::device_addr_t &addr,
   // queue commands
   anInstance.sendTimed(commands, {0.1, 0.1, 0.14});
 
-  // wait for execution
-  std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1000 * 5.0)));
-
   std::cout << "writing to file" << std::endl;
-  out1.write((const char *)&rx1buffs[0].front(),
+  out1.write((const char *)&rx1->buffer[0].front(),
              rxSamples * sizeof(std::complex<float>));
-  out2.write((const char *)&rx1buffs[1].front(),
+  out2.write((const char *)&rx1->buffer[1].front(),
              rxSamples * sizeof(std::complex<float>));
-  out3.write((const char *)&rx1buffs[2].front(),
+  out3.write((const char *)&rx1->buffer[2].front(),
              rxSamples * sizeof(std::complex<float>));
-  out4.write((const char *)&rx1buffs[3].front(),
+  out4.write((const char *)&rx1->buffer[3].front(),
              rxSamples * sizeof(std::complex<float>));
 
-  out1.write((const char *)&rx2buffs[0].front(),
+  out1.write((const char *)&rx2->buffer[0].front(),
              rxSamples * sizeof(std::complex<float>));
-  out2.write((const char *)&rx2buffs[1].front(),
+  out2.write((const char *)&rx2->buffer[1].front(),
              rxSamples * sizeof(std::complex<float>));
-  out3.write((const char *)&rx2buffs[2].front(),
+  out3.write((const char *)&rx2->buffer[2].front(),
              rxSamples * sizeof(std::complex<float>));
-  out4.write((const char *)&rx2buffs[3].front(),
+  out4.write((const char *)&rx2->buffer[3].front(),
              rxSamples * sizeof(std::complex<float>));
 }
 } // namespace examples

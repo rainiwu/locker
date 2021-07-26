@@ -24,8 +24,6 @@ void tworx(const std::string &outname = "tworx.iq", const double &freq = 2.4e9,
 
   // initialize buffer
   size_t samples = 9e5;
-  std::vector<std::complex<float>> rx1buf(samples);
-  std::vector<std::complex<float>> rx2buf(samples);
   std::vector<std::complex<float>> txbuff(samples);
 
   // fill txbuff with sinusoid
@@ -41,8 +39,8 @@ void tworx(const std::string &outname = "tworx.iq", const double &freq = 2.4e9,
   outfile.open(outname, std::ofstream::binary);
 
   // initialize Timeable commands
-  auto rx1 = std::make_shared<locker::Receiver>(rx1buf, samples);
-  auto rx2 = std::make_shared<locker::Receiver>(rx2buf, samples);
+  auto rx1 = std::make_shared<locker::Receiver>(samples);
+  auto rx2 = std::make_shared<locker::Receiver>(samples);
   auto transmit = std::make_shared<locker::Transmitter>(txbuff, samples);
 
   std::vector<locker::ITimeable *> commands;
@@ -53,13 +51,10 @@ void tworx(const std::string &outname = "tworx.iq", const double &freq = 2.4e9,
   // queue commands
   anInstance.sendTimed(commands, 0.1, 0.3);
 
-  // wait for execution
-  std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1000 * 5.0)));
-
   std::cout << "writing to file" << std::endl;
-  outfile.write((const char *)&rx1buf.front(),
+  outfile.write((const char *)&rx1->buffer[0].front(),
                 samples * sizeof(std::complex<float>));
-  outfile.write((const char *)&rx2buf.front(),
+  outfile.write((const char *)&rx2->buffer[0].front(),
                 samples * sizeof(std::complex<float>));
 }
 } // namespace examples
