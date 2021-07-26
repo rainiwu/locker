@@ -104,6 +104,7 @@ public:
 
   void execute(float time = 0.1, float interval = 0.0) {
     myInstance->sendTimed(commandQueue, time, interval);
+    commandQueue.clear();
     if (rxChannels) {
       writeRxResult();
     }
@@ -114,6 +115,7 @@ public:
         boost::python::stl_input_iterator<float>(triggerTimes),
         boost::python::stl_input_iterator<float>());
     myInstance->sendTimed(commandQueue, times);
+    commandQueue.clear();
     if (rxChannels) {
       writeRxResult();
     }
