@@ -132,7 +132,4 @@ bool LockedInstance::checkAllLock(const clockSources &aSource) {
   return true;
 }
 
-std::string LockedInstance::getSource(const clockSources &aSource) {
-  return sources[static_cast<int>(aSource)];
-}
 } // namespace locker

@@ -46,7 +46,9 @@ public:
 
 protected:
   /** maps clockSources enum to string */
-  inline std::string getSource(const clockSources &aSource);
+  inline std::string getSource(const clockSources &aSource) {
+    return sources[static_cast<int>(aSource)];
+  }
   /** sets freq, lo_lock, and others for all USRP TX and RX channels */
   void tuneAll(const uhd::tune_request_t &aRequest, const double &rxgain,
                const double &txgain, const double &rxrate, const double &txrate,
