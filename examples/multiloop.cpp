@@ -26,14 +26,14 @@ void multiloop(const uhd::device_addr_t &addr,
   // initialize buffer
   size_t samples = 2e6;
 
-  std::vector<std::complex<float>> txbuff(samples);
+  auto txbuff = std::make_shared<std::vector<std::complex<float>>>(samples);
 
   // fill txbuff with sinusoid
   const wave_table_class sinusoid("SINE", 0.3);
   const size_t step = boost::math::iround(40e6 / 100e6 * wave_table_len);
   size_t index = 0;
-  for (size_t n = 0; n < txbuff.size(); n++) {
-    txbuff[n] = sinusoid(index += step);
+  for (size_t n = 0; n < txbuff->size(); n++) {
+    (*txbuff)[n] = sinusoid(index += step);
   }
 
   // set up output files

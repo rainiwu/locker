@@ -27,14 +27,14 @@ void multi2rx(const uhd::device_addr_t &addr,
   size_t rxSamples = 2e6;  // receieve 20ms
   size_t txSamples = 10e6; // transmit 100ms
 
-  std::vector<std::complex<float>> txbuff(txSamples);
+  auto txbuff = std::make_shared<std::vector<std::complex<float>>>(txSamples);
 
   // fill txbuff with sinusoid
   const wave_table_class sinusoid("SINE", 0.3);
   const size_t step = boost::math::iround(40e6 / 100e6 * wave_table_len);
   size_t index = 0;
-  for (size_t n = 0; n < txbuff.size(); n++) {
-    txbuff[n] = sinusoid(index += step);
+  for (size_t n = 0; n < txbuff->size(); n++) {
+    (*txbuff)[n] = sinusoid(index += step);
   }
 
   // set up output files
