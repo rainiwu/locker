@@ -66,11 +66,10 @@ public:
   }
 
   void queueTx(int samples) {
-    txbuffer.clear();
-    txbuffer.resize(samples);
+    auto txbuffer = std::make_shared<std::vector<std::complex<float>>>(samples);
     std::ifstream infile;
     infile.open(txfile, std::ofstream::binary);
-    infile.read((char *)&txbuffer.front(),
+    infile.read((char *)&txbuffer->front(),
                 samples * sizeof(std::complex<float>));
     commandQueue.push_back(new locker::Transmitter(txbuffer, samples));
     std::cout << "TX of " << samples << " samples from " << txfile << " queued."
@@ -124,7 +123,6 @@ public:
   }
 
 protected:
-  std::vector<std::complex<float>> txbuffer;
   std::vector<locker::ITimeable *> commandQueue;
   locker::LockedInstance *myInstance;
   size_t rxChannels = 0;
