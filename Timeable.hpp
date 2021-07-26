@@ -72,14 +72,14 @@ protected:
 /** Timeable transmit from buffer */
 class Transmitter : public ITimeable {
 public:
-  Transmitter(const std::vector<std::complex<float>> &buffer,
+  Transmitter(std::shared_ptr<std::vector<std::complex<float>>> buffer,
               size_t samples = 0, size_t channel = 0);
   ~Transmitter();
 
   virtual void operator()(uhd::usrp::multi_usrp::sptr &aUSRP,
                           const uhd::time_spec_t &sendTime);
 
-  const std::vector<std::complex<float>> &buffer;
+  std::shared_ptr<std::vector<std::complex<float>>> buffer;
   uhd::tx_metadata_t metadata;
 
 protected:

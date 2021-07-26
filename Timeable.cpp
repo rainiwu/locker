@@ -127,8 +127,9 @@ void Receiver::readToBuf() {
 
 //---------------------------------------------------------------------
 
-Transmitter::Transmitter(const std::vector<std::complex<float>> &buffer,
-                         size_t samples, size_t channel)
+Transmitter::Transmitter(
+    std::shared_ptr<std::vector<std::complex<float>>> buffer, size_t samples,
+    size_t channel)
     : ITimeable(TimeableType::TX), buffer(buffer), samples(samples),
       channel(channel) {}
 
@@ -157,9 +158,9 @@ void Transmitter::operator()(uhd::usrp::multi_usrp::sptr &aUSRP,
 void Transmitter::sendFromBuf() {
   size_t samplesSent = 0; // track total number of samples sent
   while (samplesSent < samples) {
-    size_t samplesToSend = std::min(samples - samplesSent, buffer.size());
+    size_t samplesToSend = std::min(samples - samplesSent, buffer->size());
     samplesSent +=
-        txStreamer->send(&buffer.front(), samplesToSend, metadata, 10.0);
+        txStreamer->send(&buffer->front(), samplesToSend, metadata, 10.0);
     metadata.has_time_spec = false; // send subsequent packets immediately
   }
   metadata.end_of_burst = true; // send EOB

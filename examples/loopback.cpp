@@ -22,14 +22,14 @@ void loopback(const std::string &outname = "loopback.iq",
 
   // initialize buffer
   size_t samples = 2e6;
-  std::vector<std::complex<float>> txbuff(samples);
+  auto txbuff = std::make_shared<std::vector<std::complex<float>>>(samples);
 
   // fill txbuff with sinusoid
   const wave_table_class sinusoid("SINE", 0.3);
   const size_t step = boost::math::iround(500 / 2e6 * wave_table_len);
   size_t index = 0;
-  for (size_t n = 0; n < txbuff.size(); n++) {
-    txbuff[n] = sinusoid(index += step);
+  for (size_t n = 0; n < txbuff->size(); n++) {
+    (*txbuff)[n] = sinusoid(index += step);
   }
 
   // set up output file
@@ -37,8 +37,8 @@ void loopback(const std::string &outname = "loopback.iq",
   outfile.open(outname, std::ofstream::binary);
 
   // initialize Timeable commands
-  auto receiver = std::make_shared<locker::Receiver>(samples);
-  auto transmit = std::make_shared<locker::Transmitter>(txbuff, samples);
+  auto receiver = std::make_unique<locker::Receiver>(samples);
+  auto transmit = std::make_unique<locker::Transmitter>(txbuff, samples);
 
   std::vector<locker::ITimeable *> commands;
   commands.push_back(receiver.get());
