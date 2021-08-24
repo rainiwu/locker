@@ -22,6 +22,9 @@ public:
   std::string addr3 = "";
   std::string rxfile = "recv";
   std::string txfile = "sin.iq";
+  std::string txant = "TX/RX";
+  std::string rxant = "TX/RX";
+  std::string clock = "internal";
 
   void makeInstance() {
     uhd::device_addr_t uhdAddr;
@@ -42,8 +45,17 @@ public:
         uhdAddr["addr3"] = addr3;
       }
     }
-    myInstance = new locker::LockedInstance(freq, lo_offset, rxgain, txgain,
-                                            rxrate, txrate, uhdAddr);
+    auto source = locker::clockSources::internal;
+    if ("internal" == clock) {
+      source = locker::clockSources::internal;
+    } else if ("external" == clock) {
+      source = locker::clockSources::external;
+    } else if ("mimo" == clock) {
+      source = locker::clockSources::mimo;
+    }
+    myInstance =
+        new locker::LockedInstance(freq, lo_offset, rxgain, txgain, rxrate,
+                                   txrate, uhdAddr, source, rxant, txant);
     std::cout << "Instance constructed successfully." << '\n';
   }
 
@@ -74,6 +86,17 @@ public:
     commandQueue.push_back(new locker::Transmitter(txbuffer, samples));
     std::cout << "TX of " << samples << " samples from " << txfile << " queued."
               << '\n';
+  }
+
+  void queueTxChan(int samples, int channel) {
+    auto txbuffer = std::make_shared<std::vector<std::complex<float>>>(samples);
+    std::ifstream infile;
+    infile.open(txfile, std::ofstream::binary);
+    infile.read((char *)&txbuffer->front(),
+                samples * sizeof(std::complex<float>));
+    commandQueue.push_back(new locker::Transmitter(txbuffer, samples, channel));
+    std::cout << "TX on channel " << channel << " of " << samples
+              << " samples from " << txfile << " queued." << '\n';
   }
 
   void queueSet(std::string setting = "rxgain", int value = 30) {
@@ -152,6 +175,7 @@ BOOST_PYTHON_MODULE(lockpy) {
       .def("queue_rx", &PyLock::queueRx)
       .def("queue_multi_rx", &PyLock::queueMultiRx)
       .def("queue_tx", &PyLock::queueTx)
+      .def("queue_tx_chan", &PyLock::queueTxChan)
       .def("queue_set", &PyLock::queueSet)
       .def("execute", &PyLock::execute)
       .def("execute_list", &PyLock::execute_list)
@@ -164,6 +188,9 @@ BOOST_PYTHON_MODULE(lockpy) {
       .def_readwrite("addr1", &PyLock::addr1)
       .def_readwrite("addr2", &PyLock::addr2)
       .def_readwrite("addr3", &PyLock::addr3)
+      .def_readwrite("rxant", &PyLock::rxant)
+      .def_readwrite("txant", &PyLock::txant)
+      .def_readwrite("clock", &PyLock::clock)
       .def_readwrite("txfile", &PyLock::txfile)
       .def_readwrite("rxfile", &PyLock::rxfile);
 }
