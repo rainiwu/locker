@@ -86,7 +86,8 @@ protected:
   void sendFromBuf();
   size_t samples;
   size_t channel;
-  uhd::tx_streamer::sptr txStreamer;
+  inline static uhd::tx_streamer::sptr txStreamer = nullptr;
+  inline static bool streaming = false;
   uhd::time_spec_t myTime;
 };
 

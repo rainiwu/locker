@@ -138,9 +138,13 @@ Transmitter::~Transmitter() {}
 void Transmitter::operator()(uhd::usrp::multi_usrp::sptr &aUSRP,
                              const uhd::time_spec_t &sendTime) {
   active = true; // set ITimeable active flag
-  uhd::stream_args_t args("fc32", "sc16");
-  args.channels = {channel};
-  txStreamer = aUSRP->get_tx_stream(args);
+  if (nullptr == txStreamer) {
+    uhd::stream_args_t args("fc32", "sc16");
+    args.channels = {channel};
+    txStreamer = aUSRP->get_tx_stream(args);
+  } else {
+    std::cout << "note: using same txStreamer as first Transmitter" << '\n';
+  }
 
   metadata.start_of_burst = false;
   metadata.end_of_burst = true;
@@ -156,6 +160,13 @@ void Transmitter::operator()(uhd::usrp::multi_usrp::sptr &aUSRP,
 }
 
 void Transmitter::sendFromBuf() {
+  if (nullptr == txStreamer) {
+    throw "txStreamer not initialized";
+  }
+  while (true == streaming) {
+    std::this_thread::sleep_for(std::chrono::milliseconds(int64_t(1)));
+  }
+  streaming = true;
   size_t samplesSent = 0; // track total number of samples sent
   while (samplesSent < samples) {
     size_t samplesToSend = std::min(samples - samplesSent, buffer->size());
@@ -166,6 +177,7 @@ void Transmitter::sendFromBuf() {
   metadata.end_of_burst = true; // send EOB
   txStreamer->send("", 0, metadata);
   std::cout << "TX data transmitted." << '\n';
+  streaming = false;
   active = false;
 }
 } // namespace locker
