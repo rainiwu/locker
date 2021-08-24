@@ -164,5 +164,6 @@ BOOST_PYTHON_MODULE(lockpy) {
       .def_readwrite("addr1", &PyLock::addr1)
       .def_readwrite("addr2", &PyLock::addr2)
       .def_readwrite("addr3", &PyLock::addr3)
+      .def_readwrite("txfile", &PyLock::txfile)
       .def_readwrite("rxfile", &PyLock::rxfile);
 }
