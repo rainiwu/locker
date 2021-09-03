@@ -75,7 +75,6 @@ void LockedInstance::tuneAll(const uhd::tune_request_t &aRequest,
                              const double &rxrate, const double &txrate,
                              const std::string &rxant,
                              const std::string &txant) {
-  myUSRP->set_command_time(myUSRP->get_time_now() + uhd::time_spec_t(1.0));
   for (size_t chan = 0; chan < myUSRP->get_tx_num_channels(); chan++) {
     myUSRP->set_tx_freq(aRequest, chan);
     myUSRP->set_tx_gain(txgain, chan);
@@ -88,7 +87,6 @@ void LockedInstance::tuneAll(const uhd::tune_request_t &aRequest,
     myUSRP->set_rx_rate(rxrate, chan);
     myUSRP->set_rx_antenna(rxant, chan);
   }
-  myUSRP->clear_command_time();
 }
 
 bool LockedInstance::checkAllLock(const clockSources &aSource) {
